@@ -1132,8 +1132,13 @@
             try {
                 const btn = event.target;
                 const originalContent = btn.innerHTML;
-                btn.innerHTML = '<div class="shimmer w-4 h-4 rounded mr-2"></div>Gerando PDF...';
+                btn.innerHTML = '<div class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>Gerando PDF...';
                 btn.disabled = true;
+                
+                // Verificar bibliotecas
+                if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+                    throw new Error('Bibliotecas necessárias não foram carregadas');
+                }
                 
                 const { jsPDF } = window.jspdf;
                 const container = document.getElementById('carteira-pdf-container');
@@ -1221,46 +1226,62 @@
                 `;
                 
                 container.innerHTML = pdfContent;
-                container.style.position = 'fixed';
-                container.style.top = '0';
-                container.style.left = '0';
-                container.style.opacity = '1';
-                container.style.zIndex = '-1000';
+                container.style.cssText = `
+                    position: fixed !important;
+                    top: 0 !important;
+                    left: -9999px !important;
+                    width: 800px !important;
+                    opacity: 1 !important;
+                    pointer-events: none !important;
+                    z-index: -1000 !important;
+                    background: white !important;
+                `;
                 
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Aguardar renderização
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                const canvas = await html2canvas(container.querySelector('div'), { 
-                    scale: 2,
+                const canvas = await html2canvas(container.firstElementChild, { 
+                    scale: 1.5,
                     useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff'
+                    allowTaint: false,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    width: 800,
+                    scrollX: 0,
+                    scrollY: 0
                 });
                 
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgData = canvas.toDataURL('image/png');
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
-                const ratio = canvas.width / canvas.height;
                 
-                let imgWidth = pdfWidth;
-                let imgHeight = imgWidth / ratio;
+                // Calcular dimensões mantendo proporção
+                const canvasRatio = canvas.width / canvas.height;
+                let imgWidth = pdfWidth - 20; // margens
+                let imgHeight = imgWidth / canvasRatio;
                 
-                if (imgHeight > pdfHeight) {
-                    imgHeight = pdfHeight;
-                    imgWidth = imgHeight * ratio;
+                if (imgHeight > pdfHeight - 20) {
+                    imgHeight = pdfHeight - 20;
+                    imgWidth = imgHeight * canvasRatio;
                 }
                 
                 const x = (pdfWidth - imgWidth) / 2;
                 const y = (pdfHeight - imgHeight) / 2;
                 
-                pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+                pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
                 pdf.save(`carteira_${appData.pet.nome.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
                 
+                // Limpar container
                 container.innerHTML = '';
-                container.style.position = 'fixed';
-                container.style.top = '-9999px';
-                container.style.opacity = '0';
+                container.style.cssText = `
+                    position: fixed !important;
+                    top: -9999px !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                `;
                 
+                // Feedback de sucesso
                 btn.innerHTML = '<i class="ph-bold ph-check mr-2"></i>PDF Salvo!';
                 setTimeout(() => {
                     btn.innerHTML = originalContent;
@@ -1268,10 +1289,24 @@
                 }, 2000);
                 
             } catch (error) {
-                console.error('Erro:', error);
-                btn.innerHTML = originalContent;
+                console.error('Erro detalhado:', error);
+                
+                const btn = event.target;
+                btn.innerHTML = '<i class="ph-bold ph-x mr-2"></i>Erro na exportação';
                 btn.disabled = false;
-                alert('Erro ao gerar PDF. Tente novamente.');
+                
+                let errorMessage = 'Erro ao gerar PDF. ';
+                if (error.message.includes('bibliotecas')) {
+                    errorMessage += 'Recarregue a página e tente novamente.';
+                } else {
+                    errorMessage += 'Verifique sua conexão e tente novamente.';
+                }
+                
+                alert(errorMessage);
+                
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="ph-bold ph-download-simple mr-2"></i>Exportar PDF';
+                }, 3000);
             }
         }
     </script>
