@@ -3,350 +3,638 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Saúde Pet</title>
+    <title>Carteira Pet - Cuidado Digital</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsPDF para exportar PDF -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'health-green': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d'
+                        },
+                        'trust-blue': {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a'
+                        },
+                        'accent-purple': {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7c3aed',
+                            800: '#6b21a8',
+                            900: '#581c87'
+                        },
+                        'attention-orange': {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-subtle': 'pulse-subtle 2s infinite',
+                        'shimmer': 'shimmer 1.5s infinite',
+                        'slide-up': 'slide-up 0.5s ease-out',
+                        'breathe': 'breathe 2s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        'pulse-subtle': {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' }
+                        },
+                        shimmer: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(100%)' }
+                        },
+                        'slide-up': {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        breathe: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.05)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
+            background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 25%, #faf5ff 50%, #fff7ed 75%, #f0fdf4 100%);
             min-height: 100vh;
         }
-        
-        .card-modern {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+
+        /* Premium Card Styles */
+        .premium-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-        
-        .card-modern:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+
+        .premium-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+            border-color: rgba(34, 197, 94, 0.2);
         }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #16a085, #27ae60);
+
+        /* Premium Button Styles */
+        .btn-premium {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             color: white;
             font-weight: 600;
+            position: relative;
+            overflow: hidden;
             transition: all 0.3s ease;
         }
-        
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(22, 160, 133, 0.3);
+
+        .btn-premium:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
-        
-        .input-modern {
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px 16px;
+
+        .btn-premium:hover:before {
+            left: 100%;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+        }
+
+        /* Input Premium Styles */
+        .input-premium {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(229, 231, 235, 0.6);
+            border-radius: 16px;
+            padding: 16px 20px;
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
         }
-        
-        .input-modern:focus {
-            border-color: #16a085;
-            box-shadow: 0 0 0 3px rgba(22, 160, 133, 0.1);
+
+        .input-premium:focus {
             outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+            transform: scale(1.02);
         }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .tab {
+
+        /* Avatar Placeholder */
+        .avatar-placeholder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #86efac 0%, #22c55e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-placeholder.breathe {
+            animation: breathe 2s ease-in-out infinite;
+        }
+
+        .avatar-placeholder svg {
+            width: 60%;
+            height: 60%;
+            fill: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Status Badges Premium */
+        .status-complete {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+            color: #9a3412;
+            border: 1px solid #fb923c;
+        }
+
+        .status-future {
+            background: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border: 1px solid #60a5fa;
+        }
+
+        .status-waiting {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Progress Bar Premium */
+        .progress-premium {
+            height: 12px;
+            background: rgba(229, 231, 235, 0.3);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 6px;
+            transition: width 0.8s ease;
+        }
+
+        /* Tab Styles Premium */
+        .tab-premium {
             padding: 12px 24px;
             font-weight: 600;
             border-radius: 12px 12px 0 0;
             transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .tab.active {
-            background: linear-gradient(135deg, #e0f2fe, #cffafe);
-            border-bottom-color: #16a085;
-            color: #0c4a6e;
+
+        .tab-premium.active {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.1) 100%);
+            color: #166534;
         }
-        
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
+
+        .tab-premium.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
         }
-        
-        .status-ok { background: #dcfce7; color: #166534; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-future { background: #dbeafe; color: #1e40af; }
-        .status-waiting { background: #f1f5f9; color: #475569; }
-        
-        .game-card {
-            background: linear-gradient(135deg, #ffffff, #f8fafc);
+
+        /* Vaccine Card Premium */
+        .vaccine-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(229, 231, 235, 0.4);
             border-radius: 16px;
-            border: 1px solid #e2e8f0;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
             overflow: hidden;
         }
-        
-        .progress-bar {
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
+
+        .vaccine-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+            border-color: rgba(34, 197, 94, 0.3);
         }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #16a085, #27ae60);
-            transition: width 0.3s ease;
+
+        .vaccine-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        /* Checkbox Premium */
+        .checkbox-premium {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-premium.checked {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #16a34a;
+        }
+
+        .checkbox-premium.checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Shimmer Loading */
+        .shimmer {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .premium-card {
+                margin: 0 16px;
+            }
+            
+            .vaccine-card {
+                margin: 0 0 16px 0;
+            }
         }
     </style>
 </head>
-<body class="text-slate-800">
 
-    <!-- Tela de Setup Inicial -->
+<body class="text-slate-800 antialiased">
+    <!-- Setup Screen -->
     <div id="setup-screen" class="hidden min-h-screen flex items-center justify-center p-6">
-        <div class="w-full max-w-4xl card-modern p-8 rounded-2xl shadow-xl">
-            <header class="text-center mb-8">
-                <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-teal-500 to-green-500 rounded-full flex items-center justify-center">
-                    <i class="ph-bold ph-paw-print text-3xl text-white"></i>
+        <div class="w-full max-w-6xl premium-card rounded-3xl p-8 animate-slide-up">
+            <!-- Header Premium -->
+            <header class="text-center mb-12">
+                <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-health-green-400 to-health-green-600 flex items-center justify-center shadow-2xl">
+                    <i class="ph-bold ph-paw-print text-4xl text-white"></i>
                 </div>
-                <h1 class="text-3xl font-bold text-slate-800">Bem-vindo ao Painel Pet</h1>
-                <p class="text-slate-600 mt-2">Vamos configurar o perfil de saúde do seu companheiro</p>
+                <h1 class="text-4xl font-bold text-slate-800 mb-3 bg-gradient-to-r from-health-green-600 to-trust-blue-600 bg-clip-text text-transparent">
+                    Carteira Pet Digital
+                </h1>
+                <p class="text-xl text-slate-600 font-medium">Configure o perfil de saúde digital do seu companheiro</p>
             </header>
             
-            <div id="setup-form" class="space-y-8">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Informações do Tutor -->
-                    <div class="game-card p-6">
-                        <h2 class="text-xl font-bold text-slate-700 mb-4 flex items-center">
-                            <i class="ph-bold ph-user text-teal-600 mr-3"></i>
+            <div id="setup-form" class="space-y-10">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-10">
+                    <!-- Tutor Card -->
+                    <div class="premium-card rounded-2xl p-8 border-l-4 border-l-trust-blue-500">
+                        <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-trust-blue-500 to-trust-blue-600 flex items-center justify-center mr-4">
+                                <i class="ph-bold ph-user text-white text-lg"></i>
+                            </div>
                             Suas Informações
                         </h2>
-                        <div class="space-y-4">
+                        <div class="space-y-6">
                             <div>
-                                <label for="tutor-nome" class="block text-sm font-semibold text-slate-700 mb-2">Nome Completo</label>
-                                <input type="text" id="tutor-nome" class="input-modern w-full" placeholder="Digite seu nome">
+                                <label for="tutor-nome" class="block text-sm font-bold text-slate-700 mb-3">Nome Completo</label>
+                                <input type="text" id="tutor-nome" class="input-premium w-full text-lg" placeholder="Digite seu nome completo">
                             </div>
                             <div>
-                                <label for="tutor-genero" class="block text-sm font-semibold text-slate-700 mb-2">Pronome de tratamento</label>
-                                <select id="tutor-genero" class="input-modern w-full">
-                                    <option value="ela">Ela</option>
-                                    <option value="ele">Ele</option>
-                                    <option value="elu">Elu</option>
+                                <label for="tutor-genero" class="block text-sm font-bold text-slate-700 mb-3">Pronome de tratamento</label>
+                                <select id="tutor-genero" class="input-premium w-full text-lg">
+                                    <option value="ela">Ela (feminino)</option>
+                                    <option value="ele">Ele (masculino)</option>
+                                    <option value="elu">Elu (neutro)</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Informações do Pet -->
-                    <div class="game-card p-6">
-                        <h2 class="text-xl font-bold text-slate-700 mb-4 flex items-center">
-                            <i class="ph-bold ph-heart text-pink-600 mr-3"></i>
+                    <!-- Pet Card -->
+                    <div class="premium-card rounded-2xl p-8 border-l-4 border-l-health-green-500">
+                        <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-health-green-500 to-health-green-600 flex items-center justify-center mr-4">
+                                <i class="ph-bold ph-heart text-white text-lg"></i>
+                            </div>
                             Informações do Pet
                         </h2>
-                        <div class="space-y-4">
-                            <div class="flex items-center space-x-4">
+                        <div class="space-y-6">
+                            <div class="flex items-center space-x-6">
                                 <div class="flex-1">
-                                    <label for="pet-foto" class="block text-sm font-semibold text-slate-700 mb-2">Foto</label>
-                                    <input type="file" id="pet-foto" accept="image/*" class="input-modern w-full text-sm">
+                                    <label for="pet-foto" class="block text-sm font-bold text-slate-700 mb-3">Foto do Pet</label>
+                                    <input type="file" id="pet-foto" accept="image/*" 
+                                           class="input-premium w-full text-lg file:bg-gradient-to-r file:from-health-green-500 file:to-health-green-600 file:text-white file:border-0 file:px-4 file:py-2 file:rounded-lg file:font-semibold file:mr-4 hover:file:from-health-green-600 hover:file:to-health-green-700">
                                 </div>
-                                <div class="w-20 h-20 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                                    <img id="foto-preview" src="https://via.placeholder.com/80x80/cbd5e1/64748b?text=Pet" alt="Preview" class="w-full h-full object-cover">
+                                <div class="avatar-placeholder border-4 border-white shadow-xl" id="avatar-container">
+                                    <svg viewBox="0 0 24 24" id="dog-silhouette">
+                                        <path d="M4.5 12.5C4.5 12.5 3 14 3 16C3 18 4.5 19 4.5 19S6 18 6 16C6 14 4.5 12.5 4.5 12.5Z"/>
+                                        <path d="M19.5 12.5C19.5 12.5 21 14 21 16C21 18 19.5 19 19.5 19S18 18 18 16C18 14 19.5 12.5 19.5 12.5Z"/>
+                                        <circle cx="12" cy="14" r="6"/>
+                                        <circle cx="10" cy="12" r="1" fill="rgba(255,255,255,0.9)"/>
+                                        <circle cx="14" cy="12" r="1" fill="rgba(255,255,255,0.9)"/>
+                                        <path d="M12 15C12 15 11 16 12 16C13 16 12 15 12 15Z" fill="rgba(255,255,255,0.9)"/>
+                                    </svg>
+                                    <img id="foto-preview" class="hidden w-full h-full object-cover rounded-full">
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div>
-                                    <label for="pet-nome" class="block text-sm font-semibold text-slate-700 mb-2">Nome</label>
-                                    <input type="text" id="pet-nome" class="input-modern w-full" placeholder="Nome do pet">
+                                    <label for="pet-nome" class="block text-sm font-bold text-slate-700 mb-3">Nome do Pet</label>
+                                    <input type="text" id="pet-nome" class="input-premium w-full text-lg" placeholder="Nome do seu companheiro">
                                 </div>
                                 <div>
-                                    <label for="pet-sexo" class="block text-sm font-semibold text-slate-700 mb-2">Sexo</label>
-                                    <select id="pet-sexo" class="input-modern w-full">
+                                    <label for="pet-sexo" class="block text-sm font-bold text-slate-700 mb-3">Sexo</label>
+                                    <select id="pet-sexo" class="input-premium w-full text-lg">
                                         <option value="macho">Macho</option>
                                         <option value="fêmea">Fêmea</option>
                                     </select>
                                 </div>
                             </div>
+                            
                             <div>
-                                <label for="pet-apelidos" class="block text-sm font-semibold text-slate-700 mb-2">Apelidos (separados por vírgula)</label>
-                                <input type="text" id="pet-apelidos" class="input-modern w-full" placeholder="Docinho, Princesa, etc.">
+                                <label for="pet-apelidos" class="block text-sm font-bold text-slate-700 mb-3">Apelidos carinhosos</label>
+                                <input type="text" id="pet-apelidos" class="input-premium w-full text-lg" placeholder="Docinho, Princesa, Campeão (separados por vírgula)">
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div>
-                                    <label for="pet-raca" class="block text-sm font-semibold text-slate-700 mb-2">Raça</label>
-                                    <input type="text" id="pet-raca" class="input-modern w-full" placeholder="Ex: Golden Retriever">
+                                    <label for="pet-raca" class="block text-sm font-bold text-slate-700 mb-3">Raça</label>
+                                    <input type="text" id="pet-raca" class="input-premium w-full text-lg" placeholder="Golden Retriever, SRD, etc.">
                                 </div>
                                 <div>
-                                    <label for="pet-nascimento" class="block text-sm font-semibold text-slate-700 mb-2">Nascimento</label>
-                                    <input type="date" id="pet-nascimento" class="input-modern w-full">
+                                    <label for="pet-nascimento" class="block text-sm font-bold text-slate-700 mb-3">Data de Nascimento</label>
+                                    <input type="date" id="pet-nascimento" class="input-premium w-full text-lg">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="text-center">
-                    <button onclick="salvarSetupInicial()" class="btn-primary py-3 px-8 rounded-xl text-lg font-semibold">
-                        Criar Painel
+                <div class="text-center pt-8">
+                    <button onclick="salvarSetupInicial()" 
+                            class="btn-premium py-4 px-12 rounded-2xl text-xl font-bold shadow-xl">
+                        <i class="ph-bold ph-sparkle mr-3"></i>
+                        Criar Carteira Digital
+                        <i class="ph-bold ph-sparkle ml-3"></i>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Painel Principal -->
-    <div id="dashboard-screen" class="hidden container mx-auto p-6 max-w-7xl">
-        <!-- Header -->
-        <header class="card-modern p-6 rounded-2xl shadow-lg mb-8">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-slate-800">Painel de Saúde</h1>
-                    <p id="dashboard-pet-nome" class="text-xl text-teal-600 font-semibold"></p>
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen" class="hidden min-h-screen">
+        <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
+            <!-- Header Premium -->
+            <header class="premium-card rounded-3xl p-6 lg:p-8 mb-8 shadow-2xl">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center">
+                    <div class="flex items-center space-x-4 mb-6 lg:mb-0">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-health-green-500 to-health-green-600 flex items-center justify-center shadow-lg">
+                            <i class="ph-bold ph-heart-pulse text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-health-green-600 to-trust-blue-600 bg-clip-text text-transparent">
+                                Carteira Digital
+                            </h1>
+                            <p id="dashboard-pet-nome" class="text-xl lg:text-2xl font-semibold text-slate-600"></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="exportarPDF()" 
+                                class="btn-premium py-3 px-6 rounded-xl flex items-center shadow-lg">
+                            <i class="ph-bold ph-download-simple mr-2"></i>
+                            Exportar PDF
+                        </button>
+                        <button onclick="resetarDados()" 
+                                class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 px-6 rounded-xl flex items-center transition-all shadow-lg">
+                            <i class="ph-bold ph-trash mr-2"></i>
+                            Resetar
+                        </button>
+                    </div>
                 </div>
-                <div class="flex items-center space-x-3 mt-4 lg:mt-0">
-                    <button onclick="exportarPDF()" class="btn-primary py-2 px-4 rounded-lg flex items-center">
-                        <i class="ph-bold ph-download-simple mr-2"></i>
-                        Exportar PDF
-                    </button>
-                    <button onclick="resetarDados()" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg flex items-center transition-colors">
-                        <i class="ph-bold ph-trash mr-2"></i>
-                        Resetar
-                    </button>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Sidebar -->
-            <aside class="lg:col-span-1 space-y-6">
-                <!-- Perfil do Pet -->
-                <div class="game-card p-6">
-                    <div class="text-center">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+                <!-- Sidebar Premium -->
+                <aside class="lg:col-span-1 space-y-6">
+                    <!-- Pet Profile Card -->
+                    <div class="premium-card rounded-2xl p-6 text-center">
                         <div class="relative inline-block mb-4">
-                            <img id="perfil-pet-foto" src="https://via.placeholder.com/120x120/cbd5e1/64748b?text=Pet" alt="Pet" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg">
-                            <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <img id="perfil-pet-foto" 
+                                 class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-xl"
+                                 alt="Foto do Pet">
+                            <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-r from-health-green-500 to-health-green-600 rounded-full flex items-center justify-center shadow-lg">
                                 <i class="ph-bold ph-check text-white text-sm"></i>
                             </div>
                         </div>
-                        <h2 id="perfil-pet-nome" class="text-xl font-bold text-slate-800"></h2>
-                        <p id="perfil-pet-raca" class="text-slate-600 text-sm"></p>
-                        <p id="perfil-pet-idade" class="text-slate-500 text-xs bg-slate-100 px-3 py-1 rounded-full mt-2 inline-block"></p>
+                        <h2 id="perfil-pet-nome" class="text-xl font-bold text-slate-800 mb-1"></h2>
+                        <p id="perfil-pet-raca" class="text-slate-600 text-sm mb-2"></p>
+                        <span id="perfil-pet-idade" class="inline-block bg-gradient-to-r from-slate-100 to-slate-200 px-3 py-1 rounded-full text-xs font-semibold text-slate-600"></span>
                     </div>
-                </div>
 
-                <!-- Progresso Geral -->
-                <div class="game-card p-6">
-                    <h3 class="font-bold text-slate-700 mb-4 flex items-center">
-                        <i class="ph-bold ph-chart-line-up text-blue-600 mr-2"></i>
-                        Progresso da Saúde
-                    </h3>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="text-slate-600">Vacinas Básicas</span>
-                                <span id="progresso-texto" class="font-semibold">0%</span>
+                    <!-- Health Progress Card -->
+                    <div class="premium-card rounded-2xl p-6">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-trust-blue-500 to-trust-blue-600 flex items-center justify-center mr-3">
+                                <i class="ph-bold ph-chart-line-up text-white text-sm"></i>
                             </div>
-                            <div class="progress-bar">
-                                <div id="progresso-barra" class="progress-fill" style="width: 0%"></div>
+                            Progresso de Saúde
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="font-medium text-slate-600">Vacinas Essenciais</span>
+                                    <span id="progresso-texto" class="font-bold text-health-green-600">0%</span>
+                                </div>
+                                <div class="progress-premium">
+                                    <div id="progresso-barra" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div id="dias-protecao" class="text-center p-3 bg-gradient-to-r from-health-green-50 to-health-green-100 rounded-xl">
+                                <div class="font-bold text-health-green-800" id="dias-numero">0</div>
+                                <div class="text-xs text-health-green-600 font-medium">dias de proteção</div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Dica do Dia -->
-                <div class="game-card p-6 bg-gradient-to-br from-amber-50 to-orange-50">
-                    <h3 class="font-bold text-amber-800 mb-3 flex items-center">
-                        <i class="ph-bold ph-lightbulb text-amber-600 mr-2"></i>
-                        Dica do Dia
-                    </h3>
-                    <p id="dica-texto" class="text-amber-700 text-sm"></p>
-                </div>
-            </aside>
+                    <!-- Daily Tip Card -->
+                    <div class="premium-card rounded-2xl p-6 bg-gradient-to-br from-attention-orange-50 to-attention-orange-100 border-l-4 border-l-attention-orange-400">
+                        <h3 class="font-bold text-attention-orange-800 mb-3 flex items-center">
+                            <i class="ph-bold ph-lightbulb text-attention-orange-600 mr-2"></i>
+                            Dica de Cuidado
+                        </h3>
+                        <p id="dica-texto" class="text-attention-orange-700 text-sm font-medium"></p>
+                    </div>
+                </aside>
 
-            <!-- Conteúdo Principal -->
-            <main class="lg:col-span-3">
-                <div class="game-card">
-                    <!-- Navegação -->
-                    <nav class="border-b p-4">
-                        <div class="flex space-x-1">
-                            <button onclick="changeTab('vacinas')" class="tab active">
-                                <i class="ph-bold ph-syringe mr-2"></i>
-                                Vacinas
-                            </button>
-                            <button onclick="changeTab('informacoes')" class="tab text-slate-500">
-                                <i class="ph-bold ph-gear mr-2"></i>
-                                Configurações
-                            </button>
-                        </div>
-                    </nav>
-
-                    <!-- Conteúdo das Tabs -->
-                    <div class="p-6">
-                        <!-- Tab Vacinas -->
-                        <div id="tab-vacinas" class="tab-content active">
-                            <div class="mb-6">
-                                <h3 class="text-xl font-bold text-slate-700 mb-2">Carteira de Vacinação</h3>
-                                <p class="text-slate-600">Acompanhe o cronograma de vacinas <span id="pronome-pet">do seu pet</span></p>
-                            </div>
-                            <div id="tabela-vacinas"></div>
-                        </div>
-
-                        <!-- Tab Informações -->
-                        <div id="tab-informacoes" class="tab-content">
-                            <h3 class="text-xl font-bold text-slate-700 mb-6">Informações Adicionais</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label for="edit-pet-peso" class="block text-sm font-semibold text-slate-700 mb-2">Peso (kg)</label>
-                                    <input type="number" step="0.1" id="edit-pet-peso" class="input-modern w-full" placeholder="5.2">
-                                </div>
-                                <div>
-                                    <label for="edit-pet-cor" class="block text-sm font-semibold text-slate-700 mb-2">Cor</label>
-                                    <input type="text" id="edit-pet-cor" class="input-modern w-full" placeholder="Dourado">
-                                </div>
-                                <div>
-                                    <label for="edit-pet-rg" class="block text-sm font-semibold text-slate-700 mb-2">RG Pet</label>
-                                    <input type="text" id="edit-pet-rg" class="input-modern w-full" placeholder="SP123456">
-                                </div>
-                                <div>
-                                    <label for="edit-pet-comida" class="block text-sm font-semibold text-slate-700 mb-2">Comida Favorita</label>
-                                    <input type="text" id="edit-pet-comida" class="input-modern w-full" placeholder="Ração premium">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label for="edit-pet-brinquedo" class="block text-sm font-semibold text-slate-700 mb-2">Brinquedo Favorito</label>
-                                    <input type="text" id="edit-pet-brinquedo" class="input-modern w-full" placeholder="Bolinha de tênis">
-                                </div>
-                            </div>
-                            <div class="mt-6">
-                                <button onclick="salvarEdicoes()" class="btn-primary py-2 px-6 rounded-lg">
-                                    Salvar Alterações
+                <!-- Main Content -->
+                <main class="lg:col-span-3">
+                    <div class="premium-card rounded-2xl overflow-hidden">
+                        <!-- Premium Navigation -->
+                        <nav class="border-b border-slate-100 px-6 py-4">
+                            <div class="flex space-x-2">
+                                <button onclick="changeTab('vacinas')" 
+                                        class="tab-premium active flex items-center">
+                                    <i class="ph-bold ph-syringe mr-2"></i>
+                                    Carteira de Vacinação
+                                </button>
+                                <button onclick="changeTab('informacoes')" 
+                                        class="tab-premium text-slate-500 flex items-center">
+                                    <i class="ph-bold ph-gear mr-2"></i>
+                                    Configurações do Pet
                                 </button>
                             </div>
+                        </nav>
+
+                        <!-- Tab Content -->
+                        <div class="p-6 lg:p-8">
+                            <!-- Vaccines Tab -->
+                            <div id="tab-vacinas" class="tab-content active">
+                                <div class="mb-8">
+                                    <h3 class="text-2xl font-bold text-slate-800 mb-2">Cronograma de Vacinação</h3>
+                                    <p class="text-slate-600">Mantenha a proteção <span id="pronome-pet">do seu companheiro</span> sempre em dia</p>
+                                </div>
+                                <div id="tabela-vacinas" class="space-y-4"></div>
+                            </div>
+
+                            <!-- Settings Tab -->
+                            <div id="tab-informacoes" class="tab-content">
+                                <div class="mb-8">
+                                    <h3 class="text-2xl font-bold text-slate-800 mb-2">Informações Adicionais</h3>
+                                    <p class="text-slate-600">Personalize o perfil <span id="pronome-pet-config">do seu companheiro</span></p>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="edit-pet-peso" class="block text-sm font-bold text-slate-700 mb-3">Peso atual (kg)</label>
+                                        <input type="number" step="0.1" id="edit-pet-peso" class="input-premium w-full" placeholder="5.2">
+                                    </div>
+                                    <div>
+                                        <label for="edit-pet-cor" class="block text-sm font-bold text-slate-700 mb-3">Cor predominante</label>
+                                        <input type="text" id="edit-pet-cor" class="input-premium w-full" placeholder="Dourado com manchas brancas">
+                                    </div>
+                                    <div>
+                                        <label for="edit-pet-rg" class="block text-sm font-bold text-slate-700 mb-3">RG Pet / Microchip</label>
+                                        <input type="text" id="edit-pet-rg" class="input-premium w-full" placeholder="SP123456789">
+                                    </div>
+                                    <div>
+                                        <label for="edit-pet-comida" class="block text-sm font-bold text-slate-700 mb-3">Comida favorita</label>
+                                        <input type="text" id="edit-pet-comida" class="input-premium w-full" placeholder="Ração premium, petiscos naturais">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label for="edit-pet-brinquedo" class="block text-sm font-bold text-slate-700 mb-3">Brinquedo favorito</label>
+                                        <input type="text" id="edit-pet-brinquedo" class="input-premium w-full" placeholder="Bolinha de tênis amarela, corda de algodão">
+                                    </div>
+                                </div>
+                                <div class="mt-8">
+                                    <button onclick="salvarEdicoes()" 
+                                            class="btn-premium py-3 px-8 rounded-xl flex items-center">
+                                        <i class="ph-bold ph-floppy-disk mr-2"></i>
+                                        Cuidado registrado com carinho
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
         
-        <!-- Footer -->
-        <footer class="mt-8 p-4 text-center text-sm text-slate-500 bg-white/50 rounded-lg">
-            Este é um projeto experimental em desenvolvimento por Bruno Goulart, Amanda Andrade e Nonato Davi. Se você recebeu este projeto para testes é porque você é importante para nós.
+        <!-- Premium Footer -->
+        <footer class="mt-12 pb-8">
+            <div class="container mx-auto px-6">
+                <div class="premium-card rounded-2xl p-6 text-center">
+                    <p class="text-sm text-slate-500 leading-relaxed">
+                        Este é um projeto experimental em desenvolvimento por Bruno Goulart, Amanda Andrade e Nonato Davi. 
+                        Se você recebeu este projeto para testes é porque você é importante para nós.
+                    </p>
+                </div>
+            </div>
         </footer>
         
-        <!-- Container PDF oculto -->
+        <!-- PDF Container -->
         <div id="carteira-pdf-container" class="fixed -top-full opacity-0 pointer-events-none"></div>
     </div>
 
     <script>
-        const DB_KEY = 'petHealthDashboardData_v5';
+        const DB_KEY = 'petHealthDashboardData_premium_v1';
         
         // Sistema inteligente de gêneros
         const GENEROS = {
@@ -362,24 +650,26 @@
         };
         
         const vacinasDB = [
-            { id: 'v10_d1', nome: 'V8 ou V10 (1ª Dose)', idadeMinimaDias: 45, essencial: true },
-            { id: 'v10_d2', nome: 'V8 ou V10 (2ª Dose)', idadeMinimaDias: 75, depende: 'v10_d1', essencial: true },
-            { id: 'v10_d3', nome: 'V8 ou V10 (3ª Dose)', idadeMinimaDias: 105, depende: 'v10_d2', essencial: true },
-            { id: 'v10_reforco', nome: 'V8 ou V10 (Reforço Anual)', idadeMinimaDias: 365, anual: true },
-            { id: 'antirrabica', nome: 'Antirrábica', idadeMinimaDias: 120, anual: true, essencial: true },
-            { id: 'gripe_d1', nome: 'Gripe Canina (1ª Dose)', idadeMinimaDias: 60 },
-            { id: 'gripe_d2', nome: 'Gripe Canina (2ª Dose)', idadeMinimaDias: 81, depende: 'gripe_d1' },
-            { id: 'giardia_d1', nome: 'Giárdia (1ª Dose)', idadeMinimaDias: 60 },
-            { id: 'giardia_d2', nome: 'Giárdia (2ª Dose)', idadeMinimaDias: 81, depende: 'giardia_d1' },
+            { id: 'v10_d1', nome: 'V8 ou V10 - Primeira Dose', idadeMinimaDias: 45, essencial: true, icon: 'syringe' },
+            { id: 'v10_d2', nome: 'V8 ou V10 - Segunda Dose', idadeMinimaDias: 75, depende: 'v10_d1', essencial: true, icon: 'syringe' },
+            { id: 'v10_d3', nome: 'V8 ou V10 - Terceira Dose', idadeMinimaDias: 105, depende: 'v10_d2', essencial: true, icon: 'syringe' },
+            { id: 'v10_reforco', nome: 'V8 ou V10 - Reforço Anual', idadeMinimaDias: 365, anual: true, icon: 'arrow-clockwise' },
+            { id: 'antirrabica', nome: 'Antirrábica', idadeMinimaDias: 120, anual: true, essencial: true, icon: 'shield-check' },
+            { id: 'gripe_d1', nome: 'Gripe Canina - Primeira Dose', idadeMinimaDias: 60, icon: 'thermometer' },
+            { id: 'gripe_d2', nome: 'Gripe Canina - Segunda Dose', idadeMinimaDias: 81, depende: 'gripe_d1', icon: 'thermometer' },
+            { id: 'giardia_d1', nome: 'Giárdia - Primeira Dose', idadeMinimaDias: 60, icon: 'drop' },
+            { id: 'giardia_d2', nome: 'Giárdia - Segunda Dose', idadeMinimaDias: 81, depende: 'giardia_d1', icon: 'drop' },
         ];
         
         const dicasTemplate = [
-            "Mantenha sempre água fresca disponível",
-            "Escove os dentes {pronome_pet} regularmente", 
-            "Verifique as patinhas após os passeios",
-            "Mantenha {possessivo_pet} peso ideal com exercícios",
-            "Observe mudanças de comportamento",
-            "Mantenha as vacinas em dia"
+            "Mantenha sempre água fresca disponível para hidratação",
+            "Escove os dentes {pronome_pet} 2-3 vezes por semana", 
+            "Verifique as patinhas após cada passeio",
+            "Mantenha {possessivo_pet} peso ideal com exercícios regulares",
+            "Observe mudanças de comportamento ou apetite",
+            "A vacinação em dia é a melhor prevenção",
+            "Passeios diários fortalecem o vínculo entre vocês",
+            "Uma alimentação balanceada é essencial para a saúde"
         ];
         
         let appData = {};
@@ -422,7 +712,7 @@
             const pronounElements = document.querySelectorAll('[id*="pronome"]');
             pronounElements.forEach(el => {
                 if (el.id.includes('pet')) {
-                    el.textContent = `${pronouns.pet.artigo} ${appData.pet?.nome || 'seu pet'}`;
+                    el.textContent = `${pronouns.pet.artigo} ${appData.pet?.nome || 'seu companheiro'}`;
                 }
             });
         }
@@ -433,7 +723,14 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     fotoBase64 = e.target.result;
-                    document.getElementById('foto-preview').src = fotoBase64;
+                    const preview = document.getElementById('foto-preview');
+                    const silhouette = document.getElementById('dog-silhouette');
+                    const container = document.getElementById('avatar-container');
+                    
+                    preview.src = fotoBase64;
+                    preview.classList.remove('hidden');
+                    silhouette.style.display = 'none';
+                    container.classList.remove('breathe');
                 }
                 reader.readAsDataURL(file);
             }
@@ -495,7 +792,8 @@
             document.getElementById('perfil-pet-raca').textContent = appData.pet.raca || 'Raça não informada';
             document.getElementById('perfil-pet-idade').textContent = idadeString;
             
-            const fotoUrl = appData.pet.foto || 'https://via.placeholder.com/120x120/cbd5e1/64748b?text=Pet';
+            // Foto do perfil
+            const fotoUrl = appData.pet.foto || createAvatarPlaceholder();
             document.getElementById('perfil-pet-foto').src = fotoUrl;
 
             // Preenche campos de edição
@@ -510,39 +808,63 @@
             renderDica();
         }
 
+        function createAvatarPlaceholder() {
+            // Cria um placeholder SVG como data URL
+            const svg = `
+                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#86efac;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="60" cy="60" r="60" fill="url(#grad)"/>
+                    <g transform="translate(30, 30)" fill="rgba(255,255,255,0.9)">
+                        <path d="M4.5 22.5C4.5 22.5 3 24 3 26C3 28 4.5 29 4.5 29S6 28 6 26C6 24 4.5 22.5 4.5 22.5Z"/>
+                        <path d="M25.5 22.5C25.5 22.5 27 24 27 26C27 28 25.5 29 25.5 29S24 28 24 26C24 24 25.5 22.5 25.5 22.5Z"/>
+                        <circle cx="15" cy="30" r="10"/>
+                        <circle cx="12" cy="27" r="1.5"/>
+                        <circle cx="18" cy="27" r="1.5"/>
+                        <path d="M15 32C15 32 13 34 15 34C17 34 15 32 15 32Z"/>
+                    </g>
+                </svg>
+            `;
+            return 'data:image/svg+xml;base64,' + btoa(svg);
+        }
+
         function renderTabelaVacinas(idadeEmDias) {
             const container = document.getElementById('tabela-vacinas');
-            let html = '<div class="space-y-4">';
+            let html = '';
 
-            vacinasDB.forEach(vacina => {
-                const { status, classe, data, elegivel } = getStatusVacina(vacina, idadeEmDias);
+            vacinasDB.forEach((vacina, index) => {
+                const { status, classe, data, elegivel, icon } = getStatusVacina(vacina, idadeEmDias);
                 const isChecked = appData.pet.vacinasTomadas.includes(vacina.id);
                 
                 html += `
-                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-                        <div class="flex-1">
-                            <h4 class="font-semibold text-slate-800">${vacina.nome}</h4>
-                            <p class="text-sm text-slate-600">${data}</p>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <span class="status-badge ${classe}">${status}</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" 
-                                       value="${vacina.id}" 
-                                       class="sr-only" 
-                                       onchange="toggleVacina(this.value)" 
-                                       ${isChecked ? 'checked' : ''} 
-                                       ${!elegivel && !isChecked ? 'disabled' : ''}>
-                                <div class="w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${isChecked ? 'bg-green-500 border-green-500' : 'border-slate-300'}">
-                                    ${isChecked ? '<i class="ph-bold ph-check text-white text-sm"></i>' : ''}
+                    <div class="vaccine-card">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4 flex-1">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                    <i class="ph-bold ph-${vacina.icon} text-xl text-slate-600"></i>
                                 </div>
-                            </label>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-slate-800 text-lg">${vacina.nome}</h4>
+                                    <p class="text-sm text-slate-600 mt-1">${data}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="status-badge ${classe} px-3 py-1 rounded-full text-xs font-semibold">
+                                    ${status}
+                                </span>
+                                <div class="checkbox-premium ${isChecked ? 'checked' : ''} ${!elegivel && !isChecked ? 'opacity-50 cursor-not-allowed' : ''}" 
+                                     onclick="toggleVacina('${vacina.id}', ${elegivel || isChecked})">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
             });
             
-            html += '</div>';
             container.innerHTML = html;
         }
 
@@ -552,7 +874,14 @@
             const progresso = Math.round((vacinasTomadas.length / vacinasEssenciais.length) * 100);
             
             document.getElementById('progresso-texto').textContent = `${progresso}%`;
-            document.getElementById('progresso-barra').style.width = `${progresso}%`;
+            
+            const progressBar = document.getElementById('progresso-barra');
+            progressBar.style.width = `${progresso}%`;
+            
+            // Calcula dias de proteção (aproximado)
+            const { idadeEmDias } = getPetIdade();
+            const diasProtecao = Math.max(0, idadeEmDias - 45) * (progresso / 100);
+            document.getElementById('dias-numero').textContent = Math.round(diasProtecao);
         }
 
         function renderDica() {
@@ -567,7 +896,7 @@
         }
 
         function getPetIdade() {
-            if (!appData.pet.nascimento) return { idadeEmDias: 0, idadeString: 'Idade não definida' };
+            if (!appData.pet.nascimento) return { idadeEmDias: 0, idadeString: 'Idade não informada' };
             
             const hoje = new Date();
             const nascimento = new Date(appData.pet.nascimento);
@@ -592,22 +921,48 @@
             const tomadas = new Set(appData.pet.vacinasTomadas);
             
             if (tomadas.has(vacina.id)) {
-                return { status: 'Aplicada', classe: 'status-ok', data: 'Vacina aplicada', elegivel: true };
+                return { 
+                    status: 'Aplicada', 
+                    classe: 'status-complete', 
+                    data: 'Proteção ativa', 
+                    elegivel: true,
+                    icon: 'check-circle'
+                };
             }
             
             if (vacina.depende && !tomadas.has(vacina.depende)) {
-                return { status: 'Aguardando', classe: 'status-waiting', data: 'Aguarda dose anterior', elegivel: false };
+                return { 
+                    status: 'Aguardando', 
+                    classe: 'status-waiting', 
+                    data: 'Aguarda dose anterior', 
+                    elegivel: false,
+                    icon: 'clock'
+                };
             }
             
             if (idadePet >= vacina.idadeMinimaDias) {
-                return { status: 'Pendente', classe: 'status-pending', data: `Pode aplicar agora`, elegivel: true };
+                return { 
+                    status: 'Pendente', 
+                    classe: 'status-pending', 
+                    data: 'Recomendada agora', 
+                    elegivel: true,
+                    icon: 'warning-circle'
+                };
             } else {
                 const diasRestantes = vacina.idadeMinimaDias - idadePet;
-                return { status: 'Futura', classe: 'status-future', data: `Em ${diasRestantes} dias`, elegivel: false };
+                return { 
+                    status: 'Em breve', 
+                    classe: 'status-future', 
+                    data: `Em ${diasRestantes} dias`, 
+                    elegivel: false,
+                    icon: 'calendar'
+                };
             }
         }
 
-        function toggleVacina(vacinaId) {
+        function toggleVacina(vacinaId, elegivel) {
+            if (!elegivel) return;
+            
             const index = appData.pet.vacinasTomadas.indexOf(vacinaId);
             if (index > -1) {
                 appData.pet.vacinasTomadas.splice(index, 1);
@@ -626,12 +981,23 @@
             appData.pet.brinquedo = document.getElementById('edit-pet-brinquedo').value;
             
             localStorage.setItem(DB_KEY, JSON.stringify(appData));
-            alert('Informações salvas com sucesso!');
+            
+            // Feedback visual premium
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-bold ph-check mr-2"></i>Salvo com carinho!';
+            btn.classList.add('bg-gradient-to-r', 'from-health-green-500', 'to-health-green-600');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('from-health-green-500', 'to-health-green-600');
+            }, 2000);
+            
             renderDashboard();
         }
 
         function resetarDados() {
-            if (confirm('Tem certeza que deseja apagar todos os dados?')) {
+            if (confirm('Tem certeza que deseja apagar todos os dados? Esta ação não pode ser desfeita.')) {
                 localStorage.removeItem(DB_KEY);
                 window.location.reload();
             }
@@ -639,7 +1005,7 @@
 
         function changeTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(el => {
+            document.querySelectorAll('.tab-premium').forEach(el => {
                 el.classList.remove('active');
                 el.classList.add('text-slate-500');
             });
@@ -652,56 +1018,78 @@
 
         async function exportarPDF() {
             try {
-                // Loading simples
-                const originalText = event.target.textContent;
-                event.target.textContent = 'Gerando...';
-                event.target.disabled = true;
+                const btn = event.target;
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = '<div class="shimmer w-4 h-4 rounded mr-2"></div>Gerando PDF...';
+                btn.disabled = true;
                 
                 const { jsPDF } = window.jspdf;
                 const container = document.getElementById('carteira-pdf-container');
                 const { idadeEmDias, idadeString } = getPetIdade();
                 
-                // Tabela de vacinas para PDF
                 let tabelaVacinas = '';
                 vacinasDB.forEach(vacina => {
                     const isChecked = appData.pet.vacinasTomadas.includes(vacina.id);
-                    const status = isChecked ? 'Aplicada' : 'Pendente';
+                    const status = isChecked ? '✓ Aplicada' : '○ Pendente';
                     
                     tabelaVacinas += `
-                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
-                            <span>${vacina.nome}</span>
-                            <span style="font-weight: bold;">${status}</span>
+                        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="font-weight: 500;">${vacina.nome}</span>
+                            <span style="font-weight: 700; color: ${isChecked ? '#166534' : '#9a3412'};">${status}</span>
                         </div>
                     `;
                 });
                 
                 const pdfContent = `
-                    <div style="padding: 2rem; background: white; font-family: Inter, sans-serif; width: 800px;">
-                        <div style="text-align: center; border-bottom: 2px solid #16a085; padding-bottom: 1rem; margin-bottom: 2rem;">
-                            <h1 style="font-size: 2rem; font-weight: 800; color: #16a085;">Painel de Saúde Pet</h1>
-                            <p style="font-size: 1.5rem; font-weight: 600;">${appData.pet.nome}</p>
+                    <div style="padding: 2rem; background: white; font-family: Inter, sans-serif; width: 800px; line-height: 1.6;">
+                        <div style="text-align: center; border-bottom: 3px solid #22c55e; padding-bottom: 2rem; margin-bottom: 2rem;">
+                            <h1 style="font-size: 2.5rem; font-weight: 800; color: #22c55e; margin: 0;">Carteira Pet Digital</h1>
+                            <p style="font-size: 1.5rem; font-weight: 600; color: #475569; margin: 0.5rem 0 0 0;">${appData.pet.nome}</p>
                         </div>
                         
-                        <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
-                            <img src="${appData.pet.foto || 'https://via.placeholder.com/120x120/cbd5e1/64748b?text=Pet'}" 
-                                 style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">
+                        <div style="display: flex; gap: 2rem; margin-bottom: 3rem; background: linear-gradient(135deg, #f8fafc, #f1f5f9); padding: 2rem; border-radius: 1rem;">
+                            <img src="${appData.pet.foto || createAvatarPlaceholder()}" 
+                                 style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #22c55e; box-shadow: 0 8px 25px rgba(0,0,0,0.1);">
                             <div style="flex-grow: 1;">
-                                <h2 style="font-size: 1.5rem; font-weight: 700;">${appData.pet.nome}</h2>
-                                <p><strong>Tutor:</strong> ${appData.tutor.nome}</p>
-                                <p><strong>Idade:</strong> ${idadeString}</p>
-                                <p><strong>Raça:</strong> ${appData.pet.raca || 'N/A'}</p>
-                                <p><strong>Sexo:</strong> ${appData.pet.sexo}</p>
-                                ${appData.pet.peso ? `<p><strong>Peso:</strong> ${appData.pet.peso} kg</p>` : ''}
+                                <h2 style="font-size: 2rem; font-weight: 800; color: #1f2937; margin: 0 0 1rem 0;">${appData.pet.nome}</h2>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 1rem;">
+                                    <p style="margin: 0;"><strong>👤 Responsável:</strong> ${appData.tutor.nome}</p>
+                                    <p style="margin: 0;"><strong>🎂 Idade:</strong> ${idadeString}</p>
+                                    <p style="margin: 0;"><strong>🐕 Raça:</strong> ${appData.pet.raca || 'Não informada'}</p>
+                                    <p style="margin: 0;"><strong>⚧ Sexo:</strong> ${appData.pet.sexo}</p>
+                                    ${appData.pet.peso ? `<p style="margin: 0;"><strong>⚖️ Peso:</strong> ${appData.pet.peso} kg</p>` : ''}
+                                    ${appData.pet.cor ? `<p style="margin: 0;"><strong>🎨 Cor:</strong> ${appData.pet.cor}</p>` : ''}
+                                </div>
+                                ${appData.pet.rg ? `<p style="margin: 1rem 0 0 0;"><strong>🆔 Registro:</strong> ${appData.pet.rg}</p>` : ''}
                             </div>
                         </div>
                         
-                        <div>
-                            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Carteira de Vacinação</h3>
-                            ${tabelaVacinas}
+                        <div style="margin-bottom: 3rem;">
+                            <h3 style="font-size: 1.5rem; font-weight: 800; color: #374151; margin: 0 0 1.5rem 0; text-align: center;">💉 Carteira de Vacinação</h3>
+                            <div style="background: white; border: 2px solid #e5e7eb; border-radius: 1rem; overflow: hidden;">
+                                <div style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 1.5rem; text-align: center;">
+                                    <strong style="font-size: 1.2rem;">📋 Registro de Vacinas</strong>
+                                </div>
+                                <div style="padding: 0 1.5rem;">
+                                    ${tabelaVacinas}
+                                </div>
+                            </div>
                         </div>
                         
-                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; text-align: center; font-size: 0.8rem; color: #6b7280;">
-                            <p>Este é um projeto experimental em desenvolvimento por Bruno Goulart, Amanda Andrade e Nonato Davi. Se você recebeu este projeto para testes é porque você é importante para nós.</p>
+                        ${(appData.pet.comida || appData.pet.brinquedo) ? `
+                        <div style="background: linear-gradient(135deg, #fff7ed, #fed7aa); padding: 1.5rem; border-radius: 1rem; margin-bottom: 2rem;">
+                            <h3 style="font-size: 1.2rem; font-weight: 700; color: #9a3412; margin: 0 0 1rem 0;">🎯 Preferências</h3>
+                            ${appData.pet.comida ? `<p style="margin: 0 0 0.5rem 0;"><strong>🍖 Comida favorita:</strong> ${appData.pet.comida}</p>` : ''}
+                            ${appData.pet.brinquedo ? `<p style="margin: 0;"><strong>🎾 Brinquedo favorito:</strong> ${appData.pet.brinquedo}</p>` : ''}
+                        </div>
+                        ` : ''}
+                        
+                        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #e5e7eb; text-align: center; color: #6b7280;">
+                            <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">
+                                Este é um projeto experimental em desenvolvimento por Bruno Goulart, Amanda Andrade e Nonato Davi.<br>
+                                Se você recebeu este projeto para testes é porque você é importante para nós.
+                            </p>
+                            <p style="margin: 1rem 0 0 0; font-size: 0.8rem;">📄 Documento gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
                         </div>
                     </div>
                 `;
@@ -713,11 +1101,12 @@
                 container.style.opacity = '1';
                 container.style.zIndex = '-1000';
                 
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
                 const canvas = await html2canvas(container.querySelector('div'), { 
                     scale: 2,
                     useCORS: true,
+                    allowTaint: true,
                     backgroundColor: '#ffffff'
                 });
                 
@@ -739,21 +1128,23 @@
                 const y = (pdfHeight - imgHeight) / 2;
                 
                 pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-                pdf.save(`${appData.pet.nome}_painel_saude.pdf`);
+                pdf.save(`carteira_${appData.pet.nome.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
                 
-                // Reset
                 container.innerHTML = '';
                 container.style.position = 'fixed';
                 container.style.top = '-9999px';
                 container.style.opacity = '0';
                 
-                event.target.textContent = originalText;
-                event.target.disabled = false;
+                btn.innerHTML = '<i class="ph-bold ph-check mr-2"></i>PDF Salvo!';
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                }, 2000);
                 
             } catch (error) {
                 console.error('Erro:', error);
-                event.target.textContent = originalText;
-                event.target.disabled = false;
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
                 alert('Erro ao gerar PDF. Tente novamente.');
             }
         }
