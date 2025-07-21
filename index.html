@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Saúde Pet</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF para exportar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: linear-gradient(to top, #e0f2f1 0%, #e8f5e9 100%);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab.active {
+            border-bottom-color: #0d9488; /* teal-600 */
+            color: #0d9488; /* teal-600 */
+        }
+        /* Animação de entrada */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        .card-hover {
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.07);
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Tela de Setup Inicial -->
+    <div id="setup-screen" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-xl border border-slate-200 fade-in">
+            <header class="text-center mb-8">
+                <i class="ph-bold ph-paw-print text-5xl text-teal-500"></i>
+                <h1 class="text-3xl font-extrabold text-slate-800 mt-2">Bem-vindo(a)!</h1>
+                <p class="text-slate-500 mt-2">Vamos criar o diário de saúde do seu melhor amigo.</p>
+            </header>
+            
+            <div id="setup-form" class="space-y-6">
+                <h2 class="text-xl font-bold text-slate-700">Sobre Você</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="tutor-nome" class="block text-sm font-bold text-slate-600 mb-1">Seu Nome Completo</label>
+                        <input type="text" id="tutor-nome" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: Amanda">
+                    </div>
+                    <div>
+                        <label for="tutor-genero" class="block text-sm font-bold text-slate-600 mb-1">Como devemos nos referir a você?</label>
+                        <select id="tutor-genero" class="w-full p-3 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500 transition">
+                            <option value="Ela">Ela (feminino)</option>
+                            <option value="Ele">Ele (masculino)</option>
+                            <option value="Elu">Elu (neutro)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="border-t border-slate-200 my-4"></div>
+                <h2 class="text-xl font-bold text-slate-700">Sobre o seu Pet</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="pet-foto" class="block text-sm font-bold text-slate-600 mb-1">Foto do Pet</label>
+                        <input type="file" id="pet-foto" accept="image/png, image/jpeg" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
+                    </div>
+                    <div class="flex justify-center items-center bg-slate-50 rounded-lg h-28">
+                        <img id="foto-preview" src="https://placehold.co/150x150/a7f3d0/1e40af?text=Foto" alt="Pré-visualização da foto" class="h-24 w-24 rounded-full object-cover">
+                    </div>
+                    <div>
+                        <label for="pet-nome" class="block text-sm font-bold text-slate-600 mb-1">Nome do Pet</label>
+                        <input type="text" id="pet-nome" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: Hanna">
+                    </div>
+                    <div>
+                        <label for="pet-apelidos" class="block text-sm font-bold text-slate-600 mb-1">Apelidos (separados por vírgula)</label>
+                        <input type="text" id="pet-apelidos" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: Hanninha, KDM, burguesa">
+                    </div>
+                    <div>
+                        <label for="pet-sexo" class="block text-sm font-bold text-slate-600 mb-1">Sexo</label>
+                        <select id="pet-sexo" class="w-full p-3 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500 transition">
+                            <option value="Macho">Macho</option>
+                            <option value="Fêmea">Fêmea</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label for="pet-raca" class="block text-sm font-bold text-slate-600 mb-1">Raça</label>
+                        <input type="text" id="pet-raca" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: Spitz Alemão">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="pet-nascimento" class="block text-sm font-bold text-slate-600 mb-1">Data de Nascimento (ou aproximada)</label>
+                        <input type="date" id="pet-nascimento" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <button onclick="salvarSetupInicial()" class="bg-teal-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-teal-700 transition-colors shadow-lg text-lg">Criar Painel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel Principal (Dashboard) -->
+    <div id="dashboard-screen" class="hidden container mx-auto p-4 sm:p-6 md:p-8 max-w-7xl">
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-extrabold text-slate-800">Painel de Saúde</h1>
+                <p id="dashboard-pet-nome" class="text-2xl text-teal-600 font-bold"></p>
+            </div>
+            <div class="flex items-center space-x-2 mt-4 sm:mt-0">
+                <button onclick="exportarPDF()" class="flex items-center bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-100 transition-colors shadow-md border border-slate-200">
+                    <i class="ph ph-download-simple text-xl mr-2"></i> Exportar
+                </button>
+                 <button onclick="resetarDados()" class="flex items-center bg-red-100 text-red-700 font-semibold py-2 px-4 rounded-lg hover:bg-red-200 transition-colors shadow-sm">
+                    <i class="ph ph-trash text-xl mr-2"></i> Resetar
+                </button>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <aside class="lg:col-span-1 space-y-8">
+                <div id="perfil-card" class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 fade-in card-hover">
+                    <div class="flex flex-col items-center text-center">
+                        <img id="perfil-pet-foto" src="https://placehold.co/150x150/a7f3d0/1e40af?text=Foto" alt="Foto do Pet" class="w-32 h-32 rounded-full object-cover mb-4 border-4 border-white shadow-lg">
+                        <h2 id="perfil-pet-nome" class="text-3xl font-bold text-slate-800"></h2>
+                        <p id="perfil-pet-raca" class="text-slate-500"></p>
+                        <p id="perfil-pet-idade" class="text-sm text-slate-500 mt-1"></p>
+                    </div>
+                </div>
+
+                <div id="notificacao-fofinha-card" class="bg-emerald-100 p-6 rounded-2xl shadow-lg border border-emerald-200 fade-in card-hover" style="animation-delay: 0.1s;">
+                    <div class="flex">
+                        <div class="mr-4">
+                            <i class="ph-bold ph-lightbulb text-4xl text-emerald-500"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-emerald-800 mb-1">Lembrete do Dia</h3>
+                            <p id="notificacao-texto" class="text-emerald-700"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 fade-in card-hover" style="animation-delay: 0.2s;">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center"><i class="ph-fill ph-warning-circle text-amber-500 text-2xl mr-2"></i>Alertas de Vacinas</h3>
+                    <div id="alertas-container" class="space-y-3"></div>
+                </div>
+            </aside>
+
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border border-slate-200 fade-in" style="animation-delay: 0.3s;">
+                <nav class="border-b border-slate-200 mb-6">
+                    <div class="flex -mb-px space-x-6">
+                        <button onclick="changeTab('vacinas')" class="tab active py-3 px-1 text-base font-bold border-b-2 border-transparent transition">Vacinas</button>
+                        <button onclick="changeTab('informacoes')" class="tab py-3 px-1 text-base font-bold text-slate-500 border-b-2 border-transparent hover:text-teal-600 transition">Informações do Pet</button>
+                    </div>
+                </nav>
+
+                <div id="tab-vacinas" class="tab-content active">
+                    <div id="tabela-vacinas" class="overflow-x-auto"></div>
+                </div>
+
+                <div id="tab-informacoes" class="tab-content">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4">Editar Informações</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="edit-pet-peso" class="block text-sm font-medium text-slate-600 mb-1">Peso (kg)</label>
+                            <input type="number" step="0.1" id="edit-pet-peso" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: 5.5">
+                        </div>
+                        <div>
+                            <label for="edit-pet-cor" class="block text-sm font-medium text-slate-600 mb-1">Cor</label>
+                            <input type="text" id="edit-pet-cor" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: Laranja e branco">
+                        </div>
+                        <div>
+                            <label for="edit-pet-rg" class="block text-sm font-medium text-slate-600 mb-1">RG Pet</label>
+                            <input type="text" id="edit-pet-rg" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: SP1234567">
+                        </div>
+                        <div>
+                            <label for="edit-pet-comida" class="block text-sm font-medium text-slate-600 mb-1">Comida Favorita</label>
+                            <input type="text" id="edit-pet-comida" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: Maçã">
+                        </div>
+                        <div>
+                            <label for="edit-pet-brinquedo" class="block text-sm font-medium text-slate-600 mb-1">Brinquedo Favorito</label>
+                            <input type="text" id="edit-pet-brinquedo" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 transition" placeholder="Ex: Macaquinho de pelúcia">
+                        </div>
+                    </div>
+                    <div class="mt-6 text-right">
+                        <button onclick="salvarEdicoes()" class="bg-teal-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-teal-700 transition-colors shadow-md">Salvar Alterações</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div id="carteira-pdf-container" class="hidden"></div>
+    </div>
+
+    <script>
+        const DB_KEY = 'petHealthDashboardData_v3';
+        const vacinasDB = [
+            { id: 'v10_d1', nome: 'V8 ou V10 (1ª Dose)', idadeMinimaDias: 45 },
+            { id: 'v10_d2', nome: 'V8 ou V10 (2ª Dose)', idadeMinimaDias: 45 + 30, depende: 'v10_d1' },
+            { id: 'v10_d3', nome: 'V8 ou V10 (3ª Dose)', idadeMinimaDias: 45 + 30 + 30, depende: 'v10_d2' },
+            { id: 'v10_reforco', nome: 'V8 ou V10 (Reforço Anual)', idadeMinimaDias: 365, anual: true },
+            { id: 'antirrabica', nome: 'Antirrábica', idadeMinimaDias: 120, anual: true },
+            { id: 'gripe_d1', nome: 'Gripe (1ª Dose)', idadeMinimaDias: 60 },
+            { id: 'gripe_d2', nome: 'Gripe (2ª Dose)', idadeMinimaDias: 60 + 21, depende: 'gripe_d1' },
+            { id: 'gripe_reforco', nome: 'Gripe (Reforço Anual)', idadeMinimaDias: 365, anual: true },
+            { id: 'giardia_d1', nome: 'Giárdia (1ª Dose)', idadeMinimaDias: 60 },
+            { id: 'giardia_d2', nome: 'Giárdia (2ª Dose)', idadeMinimaDias: 60 + 21, depende: 'giardia_d1' },
+            { id: 'giardia_reforco', nome: 'Giárdia (Reforço Anual)', idadeMinimaDias: 365, anual: true },
+        ];
+        const notificacoesTemplate = [
+            "O seu {apelido} já bebeu aguinha hoje?",
+            "Hora do passeio do {apelido}!",
+            "Que tal um carinho no seu {apelido}?",
+            "Não se esqueça de verificar as patinhas do {apelido} após o passeio.",
+            "Seu {apelido} parece feliz hoje! Que tal um petisco?",
+            "Como está o potinho de comida do {apelido}?",
+        ];
+        let appData = {};
+        let fotoBase64 = null;
+
+        window.onload = function() {
+            const data = localStorage.getItem(DB_KEY);
+            if (data) {
+                appData = JSON.parse(data);
+                showDashboard();
+            } else {
+                showSetup();
+            }
+            document.getElementById('pet-foto').addEventListener('change', handleFotoChange);
+        };
+
+        function handleFotoChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fotoBase64 = e.target.result;
+                    document.getElementById('foto-preview').src = fotoBase64;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showSetup() {
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            renderDashboard();
+        }
+
+        function salvarSetupInicial() {
+            const tutorNome = document.getElementById('tutor-nome').value;
+            const petNome = document.getElementById('pet-nome').value;
+            const petNascimento = document.getElementById('pet-nascimento').value;
+
+            if (!tutorNome || !petNome || !petNascimento) {
+                alert('Por favor, preencha o seu nome, o nome do pet e a data de nascimento.');
+                return;
+            }
+
+            appData = {
+                tutor: { 
+                    nome: tutorNome,
+                    genero: document.getElementById('tutor-genero').value
+                },
+                pet: {
+                    nome: petNome,
+                    apelidos: document.getElementById('pet-apelidos').value,
+                    sexo: document.getElementById('pet-sexo').value,
+                    nascimento: petNascimento,
+                    raca: document.getElementById('pet-raca').value,
+                    foto: fotoBase64,
+                    peso: '', cor: '', rg: '', comida: '', brinquedo: '',
+                    vacinasTomadas: []
+                }
+            };
+            
+            localStorage.setItem(DB_KEY, JSON.stringify(appData));
+            showDashboard();
+        }
+        
+        function salvarEdicoes() {
+            appData.pet.peso = document.getElementById('edit-pet-peso').value;
+            appData.pet.cor = document.getElementById('edit-pet-cor').value;
+            appData.pet.rg = document.getElementById('edit-pet-rg').value;
+            appData.pet.comida = document.getElementById('edit-pet-comida').value;
+            appData.pet.brinquedo = document.getElementById('edit-pet-brinquedo').value;
+            
+            localStorage.setItem(DB_KEY, JSON.stringify(appData));
+            alert('Informações salvas com sucesso!');
+            renderDashboard();
+        }
+
+        function resetarDados() {
+            if (confirm('Tem certeza que deseja apagar todos os dados? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem(DB_KEY);
+                window.location.reload();
+            }
+        }
+        
+        function renderDashboard() {
+            if (!appData.pet) return;
+            
+            const { idadeEmDias, idadeString } = getPetIdade();
+            
+            document.getElementById('dashboard-pet-nome').textContent = appData.pet.nome;
+            document.getElementById('perfil-pet-nome').textContent = appData.pet.nome;
+            document.getElementById('perfil-pet-raca').textContent = appData.pet.raca;
+            document.getElementById('perfil-pet-idade').textContent = idadeString;
+            document.getElementById('perfil-pet-foto').src = appData.pet.foto || 'https://placehold.co/150x150/a7f3d0/1e40af?text=Foto';
+
+            document.getElementById('edit-pet-peso').value = appData.pet.peso || '';
+            document.getElementById('edit-pet-cor').value = appData.pet.cor || '';
+            document.getElementById('edit-pet-rg').value = appData.pet.rg || '';
+            document.getElementById('edit-pet-comida').value = appData.pet.comida || '';
+            document.getElementById('edit-pet-brinquedo').value = appData.pet.brinquedo || '';
+
+            renderTabelaVacinas(idadeEmDias);
+            renderAlertas(idadeEmDias);
+            renderNotificacao();
+        }
+
+        function renderTabelaVacinas(idadeEmDias) {
+            const container = document.getElementById('tabela-vacinas');
+            let html = `<table class="min-w-full bg-white">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="text-left py-3 px-4 font-bold text-sm text-slate-600 uppercase tracking-wider">Vacina</th>
+                            <th class="text-left py-3 px-4 font-bold text-sm text-slate-600 uppercase tracking-wider">Status</th>
+                            <th class="text-center py-3 px-4 font-bold text-sm text-slate-600 uppercase tracking-wider">Aplicada?</th>
+                        </tr>
+                    </thead><tbody class="text-slate-700">`;
+
+            vacinasDB.forEach(vacina => {
+                const { status, classe, data, elegivel } = getStatusVacina(vacina, idadeEmDias);
+                const isChecked = appData.pet.vacinasTomadas.includes(vacina.id);
+                html += `<tr class="border-b border-slate-200 hover:bg-teal-50">
+                        <td class="py-4 px-4 font-medium">${vacina.nome}</td>
+                        <td class="py-4 px-4">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${classe}">${status}</span>
+                            <p class="text-xs text-slate-500 mt-1">${data}</p>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <input type="checkbox" id="check_${vacina.id}" value="${vacina.id}" class="h-6 w-6 rounded border-gray-300 text-teal-600 focus:ring-teal-500 cursor-pointer" onchange="toggleVacina(this.value)" ${isChecked ? 'checked' : ''} ${!elegivel && !isChecked ? 'disabled' : ''}>
+                        </td></tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+        
+        function renderAlertas(idadeEmDias) {
+            const container = document.getElementById('alertas-container');
+            container.innerHTML = '';
+            const alertas = vacinasDB.filter(v => getStatusVacina(v, idadeEmDias).status === 'Pendente');
+
+            if (alertas.length === 0) {
+                container.innerHTML = `<div class="text-sm text-center text-slate-500 p-4 bg-green-50 rounded-lg">
+                    <i class="ph-fill ph-check-circle text-green-500 text-3xl mb-2"></i>
+                    <p>Nenhuma vacina pendente. Tudo em dia!</p></div>`;
+            } else {
+                alertas.forEach(alerta => {
+                    container.innerHTML += `<div class="text-sm p-3 bg-amber-50 text-amber-800 rounded-lg border border-amber-200">${alerta.nome} está pendente.</div>`;
+                });
+            }
+        }
+
+        function renderNotificacao() {
+            const todosNomes = [appData.pet.nome, ...(appData.pet.apelidos ? appData.pet.apelidos.split(',').map(a => a.trim()) : [])].filter(Boolean);
+            const nomeEscolhido = todosNomes[Math.floor(Math.random() * todosNomes.length)] || 'seu amiguinho';
+            const templateEscolhido = notificacoesTemplate[Math.floor(Math.random() * notificacoesTemplate.length)];
+            document.getElementById('notificacao-texto').textContent = templateEscolhido.replace('{apelido}', nomeEscolhido);
+        }
+
+        function getPetIdade() {
+            if (!appData.pet.nascimento) return { idadeEmDias: 0, idadeString: 'Idade não definida' };
+            const hoje = new Date();
+            const nascimento = new Date(appData.pet.nascimento);
+            const diffTempo = Math.abs(hoje.getTime() - nascimento.getTime());
+            const idadeEmDias = Math.ceil(diffTempo / (1000 * 3600 * 24));
+            
+            let idadeString;
+            if (idadeEmDias < 30) {
+                idadeString = `${idadeEmDias} dias`;
+            } else if (idadeEmDias < 365) {
+                idadeString = `${Math.floor(idadeEmDias / 30)} meses`;
+            } else {
+                const anos = Math.floor(idadeEmDias / 365);
+                const meses = Math.floor((idadeEmDias % 365) / 30);
+                idadeString = `${anos} ano(s)${meses > 0 ? ` e ${meses} mes(es)` : ''}`;
+            }
+            return { idadeEmDias, idadeString };
+        }
+
+        function getStatusVacina(vacina, idadePet) {
+            const tomadas = new Set(appData.pet.vacinasTomadas);
+            if (tomadas.has(vacina.id)) {
+                return { status: 'Ok', classe: 'bg-green-100 text-green-800', data: 'Aplicada', elegivel: true };
+            }
+            if (vacina.depende && !tomadas.has(vacina.depende)) {
+                 return { status: 'Aguardando', classe: 'bg-gray-100 text-gray-500', data: 'Dose anterior pendente', elegivel: false };
+            }
+            const idadeMinima = vacina.idadeMinimaDias;
+            if (idadePet >= idadeMinima) {
+                return { status: 'Pendente', classe: 'bg-amber-100 text-amber-800', data: `Recomendada desde ${idadeMinima} dias`, elegivel: true };
+            } else {
+                return { status: 'Futura', classe: 'bg-blue-100 text-blue-800', data: `A partir de ${idadeMinima} dias`, elegivel: false };
+            }
+        }
+
+        function toggleVacina(vacinaId) {
+            const index = appData.pet.vacinasTomadas.indexOf(vacinaId);
+            if (index > -1) {
+                appData.pet.vacinasTomadas.splice(index, 1);
+            } else {
+                appData.pet.vacinasTomadas.push(vacinaId);
+            }
+            localStorage.setItem(DB_KEY, JSON.stringify(appData));
+            renderDashboard();
+        }
+
+        function changeTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelector(`button[onclick="changeTab('${tabName}')"]`).classList.add('active');
+        }
+        
+        function exportarPDF() {
+            const { jsPDF } = window.jspdf;
+            const container = document.getElementById('carteira-pdf-container');
+            const { idadeEmDias, idadeString } = getPetIdade();
+            
+            // Cria o conteúdo HTML para o PDF
+            const pdfContentHTML = `
+                <div class="p-10 bg-white" style="width: 210mm;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0d9488; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <h2 style="font-size: 2rem; font-weight: 800; color: #0d9488;">Painel de Saúde</h2>
+                            <p style="font-size: 1.5rem; font-weight: 700; color: #111827;">${appData.pet.nome}</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+                        <img src="${appData.pet.foto || 'https://placehold.co/150x150/a7f3d0/1e40af?text=Foto'}" style="width: 128px; height: 128px; border-radius: 9999px; object-fit: cover; border: 4px solid #0d9488;">
+                        <div style="flex-grow: 1;">
+                            <h3 style="font-size: 1.8rem; font-weight: 700;">${appData.pet.nome}</h3>
+                            <p style="color: #4b5563;">${appData.pet.raca}</p>
+                            <div style="margin-top: 1rem; font-size: 0.9rem;">
+                                <p><strong>Tutor(a):</strong> ${appData.tutor.nome}</p>
+                                <p><strong>Idade:</strong> ${idadeString}</p>
+                                <p><strong>Sexo:</strong> ${appData.pet.sexo}</p>
+                                <p><strong>Peso:</strong> ${appData.pet.peso || 'N/A'} kg</p>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Histórico de Vacinas</h3>
+                    ${document.getElementById('tabela-vacinas').innerHTML}
+                </div>
+            `;
+            container.innerHTML = pdfContentHTML;
+
+            const contentToPrint = container.querySelector('div');
+            const nomeArquivo = `painel_saude_${appData.pet.nome.replace(/ /g, '_')}.pdf`;
+
+            html2canvas(contentToPrint, { scale: 2, useCORS: true }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const ratio = canvas.width / canvas.height;
+                let imgWidth = pdfWidth;
+                let imgHeight = imgWidth / ratio;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save(nomeArquivo);
+                container.innerHTML = ''; // Limpa o container
+            });
+        }
+    </script>
+</body>
+</html>
